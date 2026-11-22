@@ -1,11 +1,37 @@
 # Miscellaneous
 *.class
-*.lock
 *.log
 *.pyc
 *.swp
+*.swo
+.DS_Store
+Thumbs.db
 .buildlog/
 .history
+
+# Local editor and user-specific configuration
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
 
 
 
@@ -47,15 +73,11 @@ unlinked.ds
 unlinked_spec.ds
 
 # Android related
-**/android/**/gradle-wrapper.jar
 .gradle/
 **/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
-*.jks
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
