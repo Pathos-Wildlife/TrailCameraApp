@@ -1,13 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:fmvvm/fmvvm.dart';
-import 'package:trail_camera_app/views/about_us_page.dart';
-import 'package:trail_camera_app/views/camera_list_page.dart';
-import 'package:trail_camera_app/views/contact_page.dart';
-import 'package:trail_camera_app/views/cozumel_foxes_page.dart';
-import 'package:trail_camera_app/views/donate_page.dart';
-import 'package:trail_camera_app/views/leopard_seals_page.dart';
-import 'package:trail_camera_app/views/map_page.dart';
-import 'package:trail_camera_app/views/settings_page.dart';
+part of 'views.dart';
 
 enum AppDestination {
   cameraMap('Camera Map', Icons.map_outlined),

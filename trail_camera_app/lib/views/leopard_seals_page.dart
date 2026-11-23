@@ -1,7 +1,4 @@
-import 'package:flutter/widgets.dart';
-import 'package:fmvvm/fmvvm.dart';
-import 'package:trail_camera_app/views/app_drawer.dart';
-import 'package:flutter/material.dart';
+part of 'views.dart';
 
 class LeopardSealsPage extends FmvvmStatefulWidget<LeopardSealsViewModel> {
   LeopardSealsPage(super.viewModel, {super.key});

@@ -1,8 +1,4 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:fmvvm/fmvvm.dart';
-import 'package:google_sign_in/google_sign_in.dart' as google;
-import 'package:trail_camera_app/models/user.dart';
+part of 'services.dart';
 
 class GoogleSignInException implements Exception {
   const GoogleSignInException(this.message);

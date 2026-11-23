@@ -1,10 +1,4 @@
-import 'package:background/background.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
-import 'package:trail_camera_app/services/google_sign_in_service.dart';
-import 'package:fmvvm/fmvvm.dart';
+part of 'views.dart';
 
 class LoginPage extends FmvvmStatefulWidget<LoginViewModel> {
   LoginPage(super.viewModel, {super.key});
@@ -157,7 +151,7 @@ class _LoginPageState extends FmvvmState<LoginPage, LoginViewModel> {
 class LoginViewModel extends ViewModel {
   LoginViewModel(this._navigationService, this.signInService);
 
-  final GoogleSignInService signInService;
+  final ISignInService signInService;
 
   final NavigationService _navigationService;
 
@@ -188,11 +182,9 @@ class LoginViewModel extends ViewModel {
       }
       _signInInProgress = true;
       try {
-        final user = await signInService.signIn();
+        final user = await signInService.signIn(Provider.Google);
         
         _navigationService.navigateBack();
-      } on GoogleSignInException catch (error) {
-        _snackbarMessage = error.message;
       } on Exception catch (error) {
         debugPrint('Google sign-in failed: ${error.runtimeType}');
         _snackbarMessage = "Google sign-in failed. Please try again.";

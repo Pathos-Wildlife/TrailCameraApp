@@ -4,12 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fmvvm/fmvvm.dart';
+import 'package:trail_camera_app/interfaces/interfaces.dart';
 import 'package:trail_camera_app/main.dart';
-import 'package:trail_camera_app/models/user.dart';
-import 'package:trail_camera_app/services/google_sign_in_service.dart';
-import 'package:trail_camera_app/views/login_page.dart';
-import 'package:trail_camera_app/views/map_page.dart';
-import 'package:trail_camera_app/views/settings_page.dart';
+import 'package:trail_camera_app/models/models.dart';
+import 'package:trail_camera_app/services/services.dart';
+import 'package:trail_camera_app/views/views.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 class _VideoPlayer extends VideoPlayerPlatform {
@@ -26,12 +25,12 @@ class _VideoPlayer extends VideoPlayerPlatform {
   Future<void> dispose(int playerId) async {}
 }
 
-class _SignInService extends GoogleSignInService {
+class _SignInService extends ISignInService {
   Completer<void>? signOutCompleter;
   int signOutCount = 0;
 
   void updateUser(User? value) {
-    setGenericValue<User?>(GoogleSignInService.currentUserProperty, value);
+    setGenericValue<User?>(ISignInService.currentUserProperty, value);
   }
 
   @override
@@ -48,10 +47,14 @@ class _SignInService extends GoogleSignInService {
   }
 
   @override
-  Future<User> signIn() async {
+  Future<User> signIn(Provider provider) async {
     updateUser(_user);
     return _user;
   }
+
+  @override
+  User? get currentUser =>
+      getGenericValue<User?>(ISignInService.currentUserProperty);
 }
 
 final _user = User(
@@ -80,7 +83,7 @@ void main() {
               return MaterialPageRoute<void>(
                 settings: settings,
                 builder: (_) => MapPage(
-                  MapViewModel(navigation, service),
+                  MapViewModel(navigation, service, DataService()),
                   tileLayer: const SizedBox.shrink(),
                 ),
               );
@@ -139,17 +142,21 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pump();
     expect(find.byType(SettingsPage), findsOneWidget);
-    service.signOutCompleter!.completeError(
-      const GoogleSignInException('Sign-out failed.'),
-    );
+    service.signOutCompleter!.completeError(Exception('Sign-out failed.'));
     await tester.pumpAndSettle();
-    expect(find.text('Could not log out: Sign-out failed.'), findsOneWidget);
+    expect(
+      find.text('Could not log out. Please try again. Exception: Sign-out failed.'),
+      findsOneWidget,
+    );
     expect(find.byType(SettingsPage), findsOneWidget);
 
     service.signOutCompleter = Completer<void>();
     await tester.tap(find.text('Log out'));
     await tester.pump();
-    expect(find.text('Could not log out: Sign-out failed.'), findsNothing);
+    expect(
+      find.text('Could not log out. Please try again. Exception: Sign-out failed.'),
+      findsNothing,
+    );
     service.signOutCompleter!.complete();
     await tester.pumpAndSettle();
     expect(service.signOutCount, 2);

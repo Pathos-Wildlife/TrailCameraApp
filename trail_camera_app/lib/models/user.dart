@@ -1,4 +1,4 @@
-import 'package:fmvvm/fmvvm.dart';
+part of 'models.dart';
 
 enum Provider {Google}
 

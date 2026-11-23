@@ -2,19 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fmvvm/fmvvm.dart';
 import 'package:trail_camera_app/main.dart';
-import 'package:trail_camera_app/models/user.dart';
-import 'package:trail_camera_app/services/google_sign_in_service.dart';
-import 'package:trail_camera_app/views/about_us_page.dart';
-import 'package:trail_camera_app/views/app_drawer.dart';
-import 'package:trail_camera_app/views/camera_list_page.dart';
-import 'package:trail_camera_app/views/contact_page.dart';
-import 'package:trail_camera_app/views/cozumel_foxes_page.dart';
-import 'package:trail_camera_app/views/donate_page.dart';
-import 'package:trail_camera_app/views/leopard_seals_page.dart';
-import 'package:trail_camera_app/views/map_page.dart';
-import 'package:trail_camera_app/views/settings_page.dart';
+import 'package:trail_camera_app/models/models.dart';
+import 'package:trail_camera_app/services/services.dart';
+import 'package:trail_camera_app/views/views.dart';
+import 'package:trail_camera_app/interfaces/interfaces.dart';
 
-class _SignedInService extends GoogleSignInService {
+class _SignedInService extends ISignInService {
   int restoreCount = 0;
 
   @override
@@ -29,6 +22,16 @@ class _SignedInService extends GoogleSignInService {
       name: 'User',
       provider: Provider.Google,
     );
+  }
+
+  @override
+  // TODO: implement currentUser
+  User? get currentUser => throw UnimplementedError();
+
+  @override
+  Future<User> signIn(Provider provider) {
+    // TODO: implement signIn
+    throw UnimplementedError();
   }
 }
 
@@ -47,7 +50,7 @@ void main() {
             return MaterialPageRoute<void>(
               settings: settings,
               builder: (_) => MapPage(
-                MapViewModel(navigation, service),
+                MapViewModel(navigation, service, DataService()),
                 tileLayer: const SizedBox.shrink(),
               ),
             );
@@ -79,6 +82,9 @@ void main() {
       expect(find.byType(type), findsOneWidget);
       if (destination == AppDestination.settings) {
         expect(find.text('No user is signed in.'), findsOneWidget);
+      } else if (destination == AppDestination.cameraList) {
+        expect(find.text('CAM_02'), findsOneWidget);
+        expect(find.text('CAM_03'), findsOneWidget);
       } else {
         expect(find.text('$title is not available yet.'), findsOneWidget);
       }

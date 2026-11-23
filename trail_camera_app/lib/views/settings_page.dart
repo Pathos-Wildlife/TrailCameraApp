@@ -1,9 +1,4 @@
-import 'package:fmvvm/fmvvm.dart';
-import 'package:trail_camera_app/models/user.dart';
-import 'package:trail_camera_app/services/google_sign_in_service.dart';
-import 'package:trail_camera_app/views/app_drawer.dart';
-import 'package:trail_camera_app/views/login_page.dart';
-import 'package:flutter/material.dart';
+part of 'views.dart';
 
 class SettingsPage extends FmvvmStatefulWidget<SettingsViewModel> {
   SettingsPage(super.viewModel, {super.key});
@@ -34,7 +29,7 @@ class _SettingsPageState extends FmvvmState<SettingsPage, SettingsViewModel> {
         Binding(
           'currentUser',
           bindableBase.signInService,
-          GoogleSignInService.currentUserProperty,
+          ISignInService.currentUserProperty,
         ),
       ],
       builder: (context) {
@@ -108,7 +103,7 @@ class SettingsViewModel extends ViewModel {
   SettingsViewModel(this.navigationService, this.signInService);
 
   final NavigationService navigationService;
-  final GoogleSignInService signInService;
+  final ISignInService signInService;
 
   AppDestination get destination => AppDestination.settings;
 
@@ -123,20 +118,18 @@ class SettingsViewModel extends ViewModel {
       setGenericValue<String>(signOutErrorProperty, value);
 
   Command? _signOut;
-  Command get signOut => _signOut ??= Command(_signOutWithGoogle);
+  Command get signOut => _signOut ??= Command(_doSignOut);
 
-  Future<void> _signOutWithGoogle() async {
+  Future<void> _doSignOut() async {
     if (signingOut) return;
     _signOutError = '';
     _signingOut = true;
     try {
       await signInService.signOut();
       await navigationService.navigate<LoginViewModel>();
-    } on GoogleSignInException catch (error) {
-      _signOutError = 'Could not log out: ${error.message}';
     } on Exception catch (error, stackTrace) {
-      debugPrint('Google sign-out failed: $error\n$stackTrace');
-      _signOutError = 'Could not log out. Please try again.';
+      debugPrint('Sign-out failed: $error\n$stackTrace');
+      _signOutError = 'Could not log out. Please try again. $error';
     } finally {
       _signingOut = false;
     }

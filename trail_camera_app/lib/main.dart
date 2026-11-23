@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:trail_camera_app/services/google_sign_in_service.dart';
-import 'package:trail_camera_app/views/about_us_page.dart';
-import 'package:trail_camera_app/views/camera_list_page.dart';
-import 'package:trail_camera_app/views/contact_page.dart';
-import 'package:trail_camera_app/views/cozumel_foxes_page.dart';
-import 'package:trail_camera_app/views/donate_page.dart';
-import 'package:trail_camera_app/views/leopard_seals_page.dart';
-import 'package:trail_camera_app/views/login_page.dart';
-import 'package:trail_camera_app/views/map_page.dart';
-import 'package:trail_camera_app/views/settings_page.dart';
+import 'package:trail_camera_app/services/services.dart';
+import 'package:trail_camera_app/views/views.dart';
 import 'package:fmvvm/fmvvm.dart';
+
+import 'package:trail_camera_app/interfaces/interfaces.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,23 +25,31 @@ class MyApp extends FmvvmApp {
     componentResolver.registerInstance<GoogleSignInService>(
       GoogleSignInService(),
     );
+    componentResolver.registerInstance<ISignInService>(
+      SignInService(componentResolver.resolveType<GoogleSignInService>()!),
+    );
+    componentResolver.registerInstance<IDataService>(DataService());
     componentResolver.registerType<LoginViewModel>(() {
       return LoginViewModel(
         componentResolver.resolveType<NavigationService>() as NavigationService,
-        componentResolver.resolveType<GoogleSignInService>()
-            as GoogleSignInService,
+        componentResolver.resolveType<ISignInService>()
+            as ISignInService,
       );
     });
     componentResolver.registerType<MapViewModel>(() {
       return MapViewModel(
         componentResolver.resolveType<NavigationService>() as NavigationService,
-        componentResolver.resolveType<GoogleSignInService>()
-            as GoogleSignInService,
+        componentResolver.resolveType<ISignInService>()
+            as ISignInService,
+        componentResolver.resolveType<IDataService>()!,
       );
     });
     final navigation = componentResolver.resolveType<NavigationService>()!;
     componentResolver.registerType<CameraListViewModel>(
-      () => CameraListViewModel(navigation),
+      () => CameraListViewModel(
+        navigation,
+        componentResolver.resolveType<IDataService>()!,
+      ),
     );
     componentResolver.registerType<CozumelFoxesViewModel>(
       () => CozumelFoxesViewModel(navigation),
@@ -66,7 +69,7 @@ class MyApp extends FmvvmApp {
     componentResolver.registerType<SettingsViewModel>(
       () => SettingsViewModel(
         navigation,
-        componentResolver.resolveType<GoogleSignInService>()!,
+        componentResolver.resolveType<ISignInService>()!,
       ),
     );
   }

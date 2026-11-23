@@ -84,11 +84,14 @@ for details. Web sign-in is not enabled by this app.
 
 The landing page displays OpenStreetMap tiles around Cozumel. The map center is
 restricted to the island area and the zoom range is limited; surrounding sea
-and coastline can still be visible. A network connection is required to fetch
+and coastline can still be visible. Cameras are shown as pins at their stored
+coordinates; select a pin to see its name. A network connection is required to fetch
 uncached tiles. The public OpenStreetMap tile service is best-effort and subject
 to its [usage policy](https://operations.osmfoundation.org/policies/tiles/);
-use an appropriate tile provider for production traffic. The other menu
-destinations have placeholder pages; their content is not implemented yet.
+use an appropriate tile provider for production traffic. Camera List shows each
+camera's name and coordinates; select a card to open the map with that camera
+selected. The other content destinations have placeholder pages; their content
+is not implemented yet.
 
 ## Getting Started
 
