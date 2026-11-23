@@ -25,8 +25,7 @@ class _SignedInService extends ISignInService {
   }
 
   @override
-  // TODO: implement currentUser
-  User? get currentUser => throw UnimplementedError();
+  User? get currentUser => null;
 
   @override
   Future<User> signIn(Provider provider) {

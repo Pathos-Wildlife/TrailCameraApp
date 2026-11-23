@@ -1,0 +1,123 @@
+#--------------------------------------------------------------------------------------------------
+# ci-build.yml
+#
+# This file defines a CI/CD workflow for building and testing a .NET project using GitHub Actions.
+# It is a GitHub Actions workflow file for building and testing a .NET project.
+# It is triggered on pushes and pull requests to the main branch.
+# The workflow consists of a single job that runs on the latest Ubuntu environment.
+# - Installs both .NET 9.x (project build) and 8.x (tool runtime compatibility).
+# - Restores, builds, and tests the specified project.
+#--------------------------------------------------------------------------------------------------
+
+name: CI Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  Build_Flutter_Project:
+    name: 🚀 Build Flutter Project
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: trail_camera_app
+
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter --version
+
+      - name: 📦 Install Dependencies
+        run: flutter pub get
+
+      #      - name: 🔨 Select Xcode version
+      #        run: sudo xcode-select -s ${{ vars.XCODE_VERSION }}
+
+      - name: Fail on lint issues
+        run: flutter analyze lib --no-fatal-infos --no-fatal-warnings
+
+      - name: 🔨 Ensure iOS is installed
+        run: xcodebuild -downloadPlatform iOS
+
+      - name: Build iOS project 🔨
+        run: flutter build ipa --no-codesign
+
+      - name: Configure Android signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import base64
+          import binascii
+          import os
+          from pathlib import Path
+
+          names = (
+              "ANDROID_KEYSTORE_BASE64",
+              "ANDROID_KEYSTORE_PASSWORD",
+              "ANDROID_KEY_ALIAS",
+              "ANDROID_KEY_PASSWORD",
+          )
+          missing = [name for name in names if not os.environ.get(name)]
+          if missing:
+              raise SystemExit("Missing required Android signing secrets: " + ", ".join(missing))
+
+          try:
+              keystore = base64.b64decode(os.environ["ANDROID_KEYSTORE_BASE64"], validate=True)
+          except (ValueError, binascii.Error):
+              raise SystemExit("ANDROID_KEYSTORE_BASE64 is not valid base64")
+          if not keystore:
+              raise SystemExit("ANDROID_KEYSTORE_BASE64 decodes to an empty keystore")
+
+          def property_value(value):
+              units = value.encode("utf-16-be")
+              return "".join(
+                  chr(unit) if 33 <= unit <= 126 and chr(unit) not in "\\:=#!"
+                  else f"\\u{unit:04x}"
+                  for unit in (int.from_bytes(units[i:i + 2], "big") for i in range(0, len(units), 2))
+              )
+
+          os.umask(0o077)
+          Path("android/PathosKeystore.jks").write_bytes(keystore)
+          Path("android/key.properties").write_text(
+              "storePassword=" + property_value(os.environ["ANDROID_KEYSTORE_PASSWORD"]) + "\n"
+              + "keyAlias=" + property_value(os.environ["ANDROID_KEY_ALIAS"]) + "\n"
+              + "keyPassword=" + property_value(os.environ["ANDROID_KEY_PASSWORD"]) + "\n",
+              encoding="ascii",
+          )
+          PY
+
+      - name: Build Android project 🔨
+        run: flutter build apk --debug
+
+      - name: Remove Android signing files
+        if: always()
+        run: rm -f android/PathosKeystore.jks android/key.properties
+
+      #      - name: Build Android project
+      #        run: flutter build apk --debug
+
+      - name: Run unit tests
+        run: flutter test

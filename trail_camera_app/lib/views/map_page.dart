@@ -276,7 +276,8 @@ class MapViewModel extends ViewModel {
 
   Future<void> restoreSignIn() async {
     try {
-      final user = await _signInService.restoreSignIn();
+      final user =
+          _signInService.currentUser ?? await _signInService.restoreSignIn();
       _isSignedIn = (user != null);
     } on Exception catch (error, stackTrace) {
       debugPrint('Sign-in restoration failed: $error\n$stackTrace');

@@ -6,7 +6,9 @@ A new Flutter project.
 
 The Google button uses the `google_sign_in` plugin to authenticate and display
 the selected account on iOS and Android. At startup the app attempts to restore
-the Google-managed sign-in; otherwise it shows the login page. Successful
+the Google-managed sign-in only if the previous session signed in and did not
+log out; otherwise it shows the login page. Existing installations without this
+saved state must sign in once. Successful
 sign-in opens the Camera Map. Google may show an account chooser when restoring
 credentials. This is a prototype and does not create an app account or
 authenticate to a backend; a backend must validate Google ID tokens itself.
@@ -76,6 +78,19 @@ securely obtain the keystore and create that file with `storePassword`,
 property values. Never commit either file. If distributing through Google Play
 App Signing, also register the Play app-signing certificate's SHA-1 in Google
 Cloud.
+
+For the GitHub Actions CI build, add these repository secrets under **Settings >
+Secrets and variables > Actions**:
+
+- `ANDROID_KEYSTORE_BASE64`: the base64-encoded contents of `PathosKeystore.jks`
+  (generate with `base64 < android/PathosKeystore.jks | tr -d '\n'`).
+- `ANDROID_KEYSTORE_PASSWORD`: the keystore password (`storePassword`).
+- `ANDROID_KEY_ALIAS`: the key alias (`keyAlias`).
+- `ANDROID_KEY_PASSWORD`: the key password (`keyPassword`).
+
+The workflow creates the signing files for the Android build and removes them
+afterward. GitHub does not provide repository secrets to workflows triggered by
+pull requests from forks, so the signing step fails for those pull requests.
 
 See the [`google_sign_in` Android setup guide](https://pub.dev/packages/google_sign_in_android)
 for details. Web sign-in is not enabled by this app.

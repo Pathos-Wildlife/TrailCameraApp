@@ -31,6 +31,7 @@ Camera _camera() => Camera()
   ..longitude = -86.914;
 
 class _SignInService extends ISignInService {
+  int restores = 0;
   final user = User(
     id: 'id',
     name: 'User',
@@ -42,7 +43,10 @@ class _SignInService extends ISignInService {
   User? get currentUser => user;
 
   @override
-  Future<User?> restoreSignIn() async => user;
+  Future<User?> restoreSignIn() async {
+    restores++;
+    return user;
+  }
 
   @override
   Future<User> signIn(Provider provider) async => user;
@@ -52,10 +56,12 @@ class _SignInService extends ISignInService {
 }
 
 class _TestApp extends MyApp {
+  static late _SignInService signIn;
+
   @override
   void registerComponents(ComponentResolver resolver) {
     final data = _DataService();
-    final signIn = _SignInService();
+    signIn = _SignInService();
     final navigation = resolver.resolveType<NavigationService>()!;
     resolver.registerType<CameraListViewModel>(
       () => CameraListViewModel(navigation, data),
@@ -102,6 +108,7 @@ void main() {
     await tester.tap(find.text('Selected camera'));
     await tester.pumpAndSettle();
     final map = tester.widget<MapPage>(find.byType(MapPage));
+    expect(_TestApp.signIn.restores, 0);
     expect(map.bindableBase.selectedCameraId, 42);
     expect(find.text('Selected camera'), findsNothing);
     _mapCameras.complete(NotificationList<Camera>.of([_camera()]));

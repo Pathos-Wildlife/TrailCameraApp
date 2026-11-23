@@ -16,7 +16,7 @@ class GoogleSignInService extends BindableBase {
            '974790949873-ej7so7ind0ohen5hcch6k235a4ptjgrh.apps.googleusercontent.com',
        _serverClientId =
            serverClientId ??
-           const String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID'),
+           "974790949873-jsj6tqdes8sns9fe22ddlchhr6aq5822.apps.googleusercontent.com",
        _targetPlatform = targetPlatform ?? defaultTargetPlatform;
 
   final String _clientId;
