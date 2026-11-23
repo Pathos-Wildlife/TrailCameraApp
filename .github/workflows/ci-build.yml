@@ -58,8 +58,29 @@ jobs:
       - name: 🔨 Ensure iOS is installed
         run: xcodebuild -downloadPlatform iOS
 
+      - name: Configure Google sign-in
+        env:
+          GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          names = ("GOOGLE_IOS_CLIENT_ID", "GOOGLE_SERVER_CLIENT_ID")
+          missing = [name for name in names if not os.environ.get(name)]
+          if missing:
+              raise SystemExit("Missing required Google sign-in secrets: " + ", ".join(missing))
+          os.umask(0o077)
+          Path("google-sign-in.json").write_text(
+              json.dumps({name: os.environ[name] for name in names}), encoding="utf-8"
+          )
+          PY
+          python3 tool/configure_google_sign_in.py
+
       - name: Build iOS project 🔨
-        run: flutter build ipa --no-codesign
+        run: flutter build ipa --no-codesign --dart-define-from-file=google-sign-in.json
 
       - name: Configure Android signing
         env:
@@ -110,11 +131,15 @@ jobs:
           PY
 
       - name: Build Android project 🔨
-        run: flutter build apk --debug
+        run: flutter build apk --debug --dart-define-from-file=google-sign-in.json
 
       - name: Remove Android signing files
         if: always()
         run: rm -f android/PathosKeystore.jks android/key.properties
+
+      - name: Remove Google sign-in configuration
+        if: always()
+        run: rm -f google-sign-in.json ios/Flutter/GoogleSignIn.xcconfig
 
       #      - name: Build Android project
       #        run: flutter build apk --debug

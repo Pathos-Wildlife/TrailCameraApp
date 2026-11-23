@@ -2,8 +2,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart'
     as platform;
-import 'package:trail_camera_app/models/user.dart';
-import 'package:trail_camera_app/services/google_sign_in_service.dart';
+import 'package:trail_camera_app/models/models.dart';
+import 'package:trail_camera_app/services/services.dart';
 
 class FakeGoogleSignIn extends platform.GoogleSignInPlatform {
   int initializationCount = 0;
@@ -64,6 +64,66 @@ void main() {
   );
 
   setUp(GoogleSignInService.resetInitializationForTesting);
+
+  test('uses the configured iOS client ID by default', () async {
+    const clientId = String.fromEnvironment('GOOGLE_IOS_CLIENT_ID');
+    final fake = FakeGoogleSignIn();
+    platform.GoogleSignInPlatform.instance = fake;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          channel,
+          (_) async => [clientId.split('.').reversed.join('.')],
+        );
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    final signIn = GoogleSignInService(
+      targetPlatform: TargetPlatform.iOS,
+    ).signIn();
+    if (clientId.isEmpty) {
+      await expectLater(
+        signIn,
+        throwsA(
+          isA<GoogleSignInException>().having(
+            (error) => error.message,
+            'message',
+            contains('GOOGLE_IOS_CLIENT_ID'),
+          ),
+        ),
+      );
+      expect(fake.initializationCount, 0);
+    } else {
+      await signIn;
+      expect(fake.clientId, clientId);
+    }
+  });
+
+  test('uses the configured Android client ID by default', () async {
+    const clientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
+    final fake = FakeGoogleSignIn();
+    platform.GoogleSignInPlatform.instance = fake;
+    final signIn = GoogleSignInService(
+      targetPlatform: TargetPlatform.android,
+    ).signIn();
+    if (clientId.isEmpty) {
+      await expectLater(
+        signIn,
+        throwsA(
+          isA<GoogleSignInException>().having(
+            (error) => error.message,
+            'message',
+            contains('GOOGLE_SERVER_CLIENT_ID'),
+          ),
+        ),
+      );
+      expect(fake.initializationCount, 0);
+    } else {
+      await signIn;
+      expect(fake.serverClientId, clientId);
+    }
+  });
 
   test('reports a missing client ID before calling the plugin', () async {
     final fake = FakeGoogleSignIn();

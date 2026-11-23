@@ -28,24 +28,18 @@ To try the flow on the iOS simulator:
    Xcode and use the exact same value in Google Cloud. Copy the client ID and
    the **iOS URL scheme** shown for that client. This can be configured directly
    in Google Cloud; Firebase is not required.
-3. In `ios/Runner/Info.plist`, replace
-   `com.googleusercontent.apps.REPLACE_WITH_IOS_CLIENT_ID_PREFIX` with that
-   iOS URL scheme. It is the reversed client ID, for example
-   `com.googleusercontent.apps.123456789-abcdef`. Do not add a client secret to
-   the app.
-4. Open `trail_camera_app` in Rider, start an iOS simulator, and run in the
-   terminal:
+3. Configure the local client IDs as described below, then open
+   `trail_camera_app` in Rider, start an iOS simulator, and run:
 
    ```sh
    flutter pub get
-   flutter run -d <simulator-id> --dart-define=GOOGLE_IOS_CLIENT_ID=<your-ios-client-id>
+   flutter run -d <simulator-id> --dart-define-from-file=google-sign-in.json
    ```
 
    Find the simulator ID with `flutter devices`. Alternatively, add
-   `--dart-define=GOOGLE_IOS_CLIENT_ID=<your-ios-client-id>` to the Flutter run
-   configuration's additional run arguments in Rider. The client ID ends in
-   `.apps.googleusercontent.com`; it is not the reversed URL scheme. Restart
-   the app after changing a compile-time define.
+   `--dart-define-from-file=google-sign-in.json` to the Flutter run
+   configuration's additional run arguments in Rider. Restart the app after
+   changing a compile-time define.
 
 The SDK handles the Google authentication flow and callback. If you add backend
 authentication, configure a web/server client ID and send a Google ID token to
@@ -62,14 +56,39 @@ the backend for validation; never trust the displayed account ID or email alone.
    `cd android && ./gradlew signingReport`.
 2. Create or select a **Web application** OAuth client in that project. Use
    that client's ID—not the Android client ID—as `GOOGLE_SERVER_CLIENT_ID`.
-3. Run the app with the Web client ID:
+3. Configure the local client IDs as described below, then run:
 
    ```sh
-   flutter run -d <android-device-id> --dart-define=GOOGLE_SERVER_CLIENT_ID=<your-web-client-id>
+   flutter run -d <android-device-id> --dart-define-from-file=google-sign-in.json
    ```
 
    Find the device ID with `flutter devices`. Add the same define to your run
    configuration in Rider if needed. Do not add a client secret to the app.
+
+### Client ID configuration
+
+Create `trail_camera_app/google-sign-in.json` locally with the iOS client ID and
+the Web application client ID:
+
+```json
+{
+  "GOOGLE_IOS_CLIENT_ID": "<your-ios-client-id>",
+  "GOOGLE_SERVER_CLIENT_ID": "<your-web-client-id>"
+}
+```
+
+From `trail_camera_app`, run `python3 tool/configure_google_sign_in.py`. This
+validates both IDs and generates the iOS URL scheme in
+`ios/Flutter/GoogleSignIn.xcconfig`. Run it again whenever the iOS ID changes.
+Both files are ignored by Git. Pass the JSON file via `--dart-define-from-file`
+for local runs and builds; without the appropriate ID, sign-in reports a
+configuration error.
+
+For CI, add repository secrets named `GOOGLE_IOS_CLIENT_ID` and
+`GOOGLE_SERVER_CLIENT_ID`. The workflow generates the same configuration for
+both builds. OAuth client IDs are embedded in the resulting app and are not
+confidential; never put a client secret in the app. IDs previously committed
+remain in Git history.
 
 Debug, profile, and release builds use `android/PathosKeystore.jks` and the
 credentials in the ignored `android/key.properties` file. On another machine,
@@ -90,7 +109,7 @@ Secrets and variables > Actions**:
 
 The workflow creates the signing files for the Android build and removes them
 afterward. GitHub does not provide repository secrets to workflows triggered by
-pull requests from forks, so the signing step fails for those pull requests.
+pull requests from forks, so those pull requests fail when configuring secrets.
 
 See the [`google_sign_in` Android setup guide](https://pub.dev/packages/google_sign_in_android)
 for details. Web sign-in is not enabled by this app.
