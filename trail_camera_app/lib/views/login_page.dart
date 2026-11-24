@@ -91,13 +91,6 @@ class _LoginPageState extends FmvvmState<LoginPage, LoginViewModel> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildSponsorButton(
-                          'Facebook',
-                          'assets/photos/facebook-logo.png',
-                          const Color(0xFF0165E1),
-                          onPressed: () {},
-                        ),
-                        const SizedBox(height: 16),
-                        _buildSponsorButton(
                           'Google',
                           'assets/photos/google-logo.png',
                           const Color(0xFFDB4437),
