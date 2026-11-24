@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - QA
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       buildOS:
@@ -40,6 +43,9 @@ jobs:
   build:
     name: 🚀 Build and Deploy Flutter Project
     runs-on: macos-26
+    defaults:
+      run:
+        working-directory: trail_camera_app
     env:
       AppleAppId: org.pathoswildlife.trailcameraapp
       iOSCertificateName: "Apple Distribution: Pathos Wildlife (XAK47JYH47)"
@@ -89,6 +95,12 @@ jobs:
           github.event_name != 'workflow_dispatch' ||
           contains(fromJSON('["iOS","both"]'), github.event.inputs.buildOS)
 
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
