@@ -60,6 +60,14 @@ class DataService implements IDataService {
       camera.latitude = 20.360717;
 
       items.add(camera as T);
+
+      camera = Camera();
+      camera.id = 8;
+      camera.cameraName = "CAM_09";
+      camera.longitude = -86.973303;
+      camera.latitude = 20.354697;
+      
+      items.add(camera as T);
     }
     return items;
   }
