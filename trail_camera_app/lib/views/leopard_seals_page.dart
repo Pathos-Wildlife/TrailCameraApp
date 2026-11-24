@@ -1,14 +1,15 @@
 part of 'views.dart';
 
 class LeopardSealsPage extends FmvvmStatefulWidget<LeopardSealsViewModel> {
-  LeopardSealsPage(super.viewModel, {super.key});
+  const LeopardSealsPage(super.viewModel, {super.key});
 
   @override
-  State<LeopardSealsPage> createState() => _LeopardSealsPageState(bindableBase);
+  State<LeopardSealsPage> createState() => _LeopardSealsPageState();
 }
 
-class _LeopardSealsPageState extends FmvvmState<LeopardSealsPage, LeopardSealsViewModel> {
-  _LeopardSealsPageState(LeopardSealsViewModel viewModel) : super(viewModel, true);
+class _LeopardSealsPageState
+    extends FmvvmState<LeopardSealsPage, LeopardSealsViewModel> {
+  _LeopardSealsPageState() : super(true);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,6 @@ class _LeopardSealsPageState extends FmvvmState<LeopardSealsPage, LeopardSealsVi
     );
   }
 }
-
 
 class LeopardSealsViewModel extends ViewModel {
   LeopardSealsViewModel(this.navigationService);

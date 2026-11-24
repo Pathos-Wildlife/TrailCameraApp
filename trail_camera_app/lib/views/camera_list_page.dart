@@ -1,15 +1,15 @@
 part of 'views.dart';
 
 class CameraListPage extends FmvvmStatefulWidget<CameraListViewModel> {
-  CameraListPage(super.viewModel, {super.key});
+  const CameraListPage(super.viewModel, {super.key});
 
   @override
-  State<CameraListPage> createState() => _CameraListPageState(bindableBase);
+  State<CameraListPage> createState() => _CameraListPageState();
 }
 
 class _CameraListPageState
     extends FmvvmState<CameraListPage, CameraListViewModel> {
-  _CameraListPageState(CameraListViewModel viewModel) : super(viewModel, true);
+  _CameraListPageState() : super(true);
 
   @override
   Widget build(BuildContext context) {

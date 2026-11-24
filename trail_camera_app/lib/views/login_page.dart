@@ -1,19 +1,14 @@
 part of 'views.dart';
 
 class LoginPage extends FmvvmStatefulWidget<LoginViewModel> {
-  LoginPage(super.viewModel, {super.key});
+  const LoginPage(super.viewModel, {super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState(bindableBase);
+  State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends FmvvmState<LoginPage, LoginViewModel> {
-  _LoginPageState(LoginViewModel viewModel) : super(viewModel, true);
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  _LoginPageState() : super(true);
 
   Widget _buildSponsorButton(
     String label,
@@ -45,13 +40,13 @@ class _LoginPageState extends FmvvmState<LoginPage, LoginViewModel> {
       ),
     );
   }
-  
+
   Widget showSnackbar(String message) {
     if (message != "") {
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       });
     }
     return SizedBox.shrink();
@@ -62,17 +57,16 @@ class _LoginPageState extends FmvvmState<LoginPage, LoginViewModel> {
     super.build(context);
     return PopScope(
       canPop: false,
-      child:
-      AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        body: Background(
-          path: 'assets/video/mainscreentestvideo.mp4',
-          child: SafeArea(
-            child: Column(
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          body: Background(
+            path: 'assets/video/mainscreentestvideo.mp4',
+            child: SafeArea(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Image.asset(
@@ -128,21 +122,27 @@ class _LoginPageState extends FmvvmState<LoginPage, LoginViewModel> {
                           onPressed: () {},
                         ),
                         BindingWidget<LoginViewModel>(
-                           bindings: <Binding>[
-                             Binding('signInError', bindableBase,
-                                 LoginViewModel.snackbarMessageProperty)
-                           ],
-                           builder: (bc) => showSnackbar(BindingWidget.of<LoginViewModel>(bc)
-                               .getGenericValue<String>('signInError')),
-                         ),
+                          bindings: <Binding>[
+                            Binding(
+                              'signInError',
+                              bindableBase,
+                              LoginViewModel.snackbarMessageProperty,
+                            ),
+                          ],
+                          builder: (bc) => showSnackbar(
+                            BindingWidget.of<LoginViewModel>(
+                              bc,
+                            ).getGenericValue<String>('signInError'),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ],
+              ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -155,8 +155,12 @@ class LoginViewModel extends ViewModel {
 
   final NavigationService _navigationService;
 
-  static PropertyInfo snackbarMessageProperty = PropertyInfo('snackbarMessage', String);
-  String get snackbarMessage => getGenericValue<String>(snackbarMessageProperty);
+  static PropertyInfo snackbarMessageProperty = PropertyInfo(
+    'snackbarMessage',
+    String,
+  );
+  String get snackbarMessage =>
+      getGenericValue<String>(snackbarMessageProperty);
   set _snackbarMessage(String value) => {
     setGenericValue<String>(snackbarMessageProperty, value),
   };
@@ -177,13 +181,13 @@ class LoginViewModel extends ViewModel {
       if (kIsWeb ||
           (defaultTargetPlatform != TargetPlatform.iOS &&
               defaultTargetPlatform != TargetPlatform.android)) {
-        _snackbarMessage = "Google sign-in is available only on iOS and Android.";
+        _snackbarMessage =
+            "Google sign-in is available only on iOS and Android.";
         return;
       }
       _signInInProgress = true;
       try {
-        final user = await signInService.signIn(Provider.Google);
-        
+        await signInService.signIn(Provider.google);
         _navigationService.navigateBack();
       } on Exception catch (error) {
         debugPrint('Google sign-in failed: ${error.runtimeType}');

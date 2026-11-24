@@ -30,7 +30,7 @@ class FakeGoogleSignInService extends GoogleSignInService {
       id: 'id',
       email: 'user@example.com',
       name: 'User',
-      provider: Provider.Google,
+      provider: Provider.google,
     );
   }
 
@@ -51,7 +51,7 @@ void main() {
     final ISignInService service = SignInService(google);
 
     expect(service.currentUser, isNull);
-    final user = await service.signIn(Provider.Google);
+    final user = await service.signIn(Provider.google);
     expect(google.signIns, 1);
     expect(service.currentUser, same(user));
     expect(
@@ -82,7 +82,7 @@ void main() {
       id: 'restored',
       email: 'restored@example.com',
       name: 'Restored',
-      provider: Provider.Google,
+      provider: Provider.google,
     );
     final service = SignInService(google);
     final results = await Future.wait([
@@ -98,7 +98,7 @@ void main() {
   test('a new session restores after sign in but not after sign out', () async {
     final google = FakeGoogleSignInService();
     final firstSession = SignInService(google);
-    await firstSession.signIn(Provider.Google);
+    await firstSession.signIn(Provider.google);
     google.restoredUser = google.user;
     final nextSession = SignInService(google);
     expect(await nextSession.restoreSignIn(), same(google.restoredUser));
@@ -131,7 +131,7 @@ void main() {
   test('propagates Google failures without changing the user', () async {
     final google = FakeGoogleSignInService();
     final service = SignInService(google);
-    final user = await service.signIn(Provider.Google);
+    final user = await service.signIn(Provider.google);
     google.error = const GoogleSignInException('Google failure');
     await expectLater(service.signOut(), throwsA(isA<GoogleSignInException>()));
     expect(service.currentUser, same(user));
@@ -140,7 +140,7 @@ void main() {
       isTrue,
     );
     await expectLater(
-      service.signIn(Provider.Google),
+      service.signIn(Provider.google),
       throwsA(isA<GoogleSignInException>()),
     );
     expect(await service.restoreSignIn(), same(user));

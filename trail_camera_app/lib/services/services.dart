@@ -1,4 +1,4 @@
-library trail_camera_app.services;
+library;
 
 import 'package:fmvvm/fmvvm.dart';
 import 'package:trail_camera_app/interfaces/interfaces.dart';

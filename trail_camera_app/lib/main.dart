@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:trail_camera_app/services/services.dart';
 import 'package:trail_camera_app/views/views.dart';
 import 'package:fmvvm/fmvvm.dart';
 
 import 'package:trail_camera_app/interfaces/interfaces.dart';
-
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +19,8 @@ void main() {
 }
 
 class MyApp extends FmvvmApp {
+  MyApp({super.key});
+
   @override
   void registerComponents(ComponentResolver componentResolver) {
     componentResolver.registerInstance<GoogleSignInService>(
@@ -32,15 +33,13 @@ class MyApp extends FmvvmApp {
     componentResolver.registerType<LoginViewModel>(() {
       return LoginViewModel(
         componentResolver.resolveType<NavigationService>() as NavigationService,
-        componentResolver.resolveType<ISignInService>()
-            as ISignInService,
+        componentResolver.resolveType<ISignInService>() as ISignInService,
       );
     });
     componentResolver.registerType<MapViewModel>(() {
       return MapViewModel(
         componentResolver.resolveType<NavigationService>() as NavigationService,
-        componentResolver.resolveType<ISignInService>()
-            as ISignInService,
+        componentResolver.resolveType<ISignInService>() as ISignInService,
         componentResolver.resolveType<IDataService>()!,
       );
     });

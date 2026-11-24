@@ -35,8 +35,9 @@ dependencies:
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
   url_launcher: ^6.3.2
-  fmvvm: ^0.9.11
+  fmvvm: ^0.9.12
   shared_preferences: ^2.5.3
+  material_ui: ^1.11.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -1,23 +1,31 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fmvvm/fmvvm.dart';
-import 'package:trail_camera_app/interfaces/i_data_service.dart';
-import 'package:trail_camera_app/models/camera.dart';
-import 'package:trail_camera_app/models/user.dart';
-import 'package:trail_camera_app/services/data_service.dart';
+import 'package:trail_camera_app/interfaces/interfaces.dart';
+import 'package:trail_camera_app/models/models.dart';
+import 'package:trail_camera_app/services/services.dart';
 
 void main() {
   final IDataService service = DataService();
 
-  test('getAll returns a new list with one camera each time', () async {
+  test('getAll returns independent lists of cameras each time', () async {
     final first = await service.getAll<Camera>();
     final second = await service.getAll<Camera>();
 
     expect(first, isA<NotificationList<Camera>>());
-    expect(first, hasLength(1));
-    expect(first.single, isA<Camera>());
-    expect(second, hasLength(1));
+    expect(first, hasLength(7));
+    expect(second, hasLength(7));
+    expect(
+      first.map((camera) => camera.id),
+      orderedEquals([1, 2, 3, 4, 5, 6, 7]),
+    );
+    expect(
+      second.map((camera) => camera.id),
+      orderedEquals([1, 2, 3, 4, 5, 6, 7]),
+    );
     expect(identical(first, second), isFalse);
-    expect(identical(first.single, second.single), isFalse);
+    for (var i = 0; i < first.length; i++) {
+      expect(identical(first[i], second[i]), isFalse);
+    }
   });
 
   test('getAll returns a new empty list for other types', () async {

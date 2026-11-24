@@ -1,17 +1,17 @@
 part of 'views.dart';
 
 class MapPage extends FmvvmStatefulWidget<MapViewModel> {
-  MapPage(super.viewModel, {super.key, this.tileLayer});
+  const MapPage(super.viewModel, {super.key, this.tileLayer});
 
   @visibleForTesting
   final Widget? tileLayer;
 
   @override
-  State<MapPage> createState() => _MapPageState(bindableBase);
+  State<MapPage> createState() => _MapPageState();
 }
 
 class _MapPageState extends FmvvmState<MapPage, MapViewModel> {
-  _MapPageState(MapViewModel viewModel) : super(viewModel, true);
+  _MapPageState() : super(true);
 
   final MapController _mapController = MapController();
   bool _tileLoadFailed = false;

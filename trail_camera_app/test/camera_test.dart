@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:trail_camera_app/models/camera.dart';
+import 'package:trail_camera_app/models/models.dart';
 
 void main() {
   test('camera properties have FMVVM defaults and notify when changed', () {

@@ -194,7 +194,7 @@ void main() {
     expect(user.id, 'google-user-id');
     expect(user.email, 'user@example.com');
     expect(user.name, 'Example User');
-    expect(user.provider, Provider.Google);
+    expect(user.provider, Provider.google);
 
     fake.authenticationError = const platform.GoogleSignInException(
       code: platform.GoogleSignInExceptionCode.canceled,
@@ -304,7 +304,7 @@ void main() {
       expect(service.currentUser, same(user));
       expect(user?.id, 'restored-id');
       expect(user?.email, 'restored@example.com');
-      expect(user?.provider, Provider.Google);
+      expect(user?.provider, Provider.google);
       fake.restoredAccount = null;
       expect(await service.restoreSignIn(), isNull);
       expect(service.currentUser, isNull);

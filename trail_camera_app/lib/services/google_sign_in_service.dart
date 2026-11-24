@@ -130,7 +130,7 @@ class GoogleSignInService extends BindableBase {
     id: account.id,
     email: account.email,
     name: account.displayName ?? '',
-    provider: Provider.Google,
+    provider: Provider.google,
   );
 
   GoogleSignInException _translateError(google.GoogleSignInException error) {

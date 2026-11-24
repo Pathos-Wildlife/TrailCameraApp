@@ -1,14 +1,14 @@
 part of 'views.dart';
 
 class SettingsPage extends FmvvmStatefulWidget<SettingsViewModel> {
-  SettingsPage(super.viewModel, {super.key});
+  const SettingsPage(super.viewModel, {super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState(bindableBase);
+  State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends FmvvmState<SettingsPage, SettingsViewModel> {
-  _SettingsPageState(SettingsViewModel viewModel) : super(viewModel, true);
+  _SettingsPageState() : super(true);
 
   @override
   Widget build(BuildContext context) {

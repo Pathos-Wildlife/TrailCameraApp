@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fmvvm/fmvvm.dart';
 import 'package:trail_camera_app/main.dart';
@@ -20,7 +20,7 @@ class _SignedInService extends ISignInService {
       id: 'id',
       email: 'user@example.com',
       name: 'User',
-      provider: Provider.Google,
+      provider: Provider.google,
     );
   }
 

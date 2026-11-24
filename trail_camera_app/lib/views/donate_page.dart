@@ -1,14 +1,14 @@
 part of 'views.dart';
 
 class DonatePage extends FmvvmStatefulWidget<DonateViewModel> {
-  DonatePage(super.viewModel, {super.key});
+  const DonatePage(super.viewModel, {super.key});
 
   @override
-  State<DonatePage> createState() => _DonatePageState(bindableBase);
+  State<DonatePage> createState() => _DonatePageState();
 }
 
 class _DonatePageState extends FmvvmState<DonatePage, DonateViewModel> {
-  _DonatePageState(DonateViewModel viewModel) : super(viewModel, true);
+  _DonatePageState() : super(true);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,6 @@ class _DonatePageState extends FmvvmState<DonatePage, DonateViewModel> {
     );
   }
 }
-
 
 class DonateViewModel extends ViewModel {
   DonateViewModel(this.navigationService);

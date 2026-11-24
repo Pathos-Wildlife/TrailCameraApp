@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fmvvm/fmvvm.dart';
 import 'package:trail_camera_app/interfaces/interfaces.dart';
@@ -61,13 +61,19 @@ final _user = User(
   id: 'id',
   email: 'user@example.com',
   name: 'User',
-  provider: Provider.Google,
+  provider: Provider.google,
 );
 
 void main() {
   testWidgets('logout waits, reports failures and opens login on success', (
     tester,
   ) async {
+    final previousPlatform = debugDefaultTargetPlatformOverride;
+    final previousVideoPlayer = VideoPlayerPlatform.instance;
+    addTearDown(() {
+      debugDefaultTargetPlatformOverride = previousPlatform;
+      VideoPlayerPlatform.instance = previousVideoPlayer;
+    });
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     VideoPlayerPlatform.instance = _VideoPlayer();
     final app = MyApp();
@@ -111,13 +117,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('User'), findsOneWidget);
     expect(find.text('user@example.com'), findsOneWidget);
-    expect(find.text('Google'), findsOneWidget);
+    expect(find.text('google'), findsOneWidget);
     service.updateUser(
       User(
         id: 'other-id',
         email: 'other@example.com',
         name: 'Another User',
-        provider: Provider.Google,
+        provider: Provider.google,
       ),
     );
     await tester.pump();
@@ -142,10 +148,23 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pump();
     expect(find.byType(SettingsPage), findsOneWidget);
-    service.signOutCompleter!.completeError(Exception('Sign-out failed.'));
-    await tester.pumpAndSettle();
+    final previousDebugPrint = debugPrint;
+    final messages = <String?>[];
+    debugPrint = (String? message, {int? wrapWidth}) => messages.add(message);
+    try {
+      service.signOutCompleter!.completeError(Exception('Sign-out failed.'));
+      await tester.pumpAndSettle();
+    } finally {
+      debugPrint = previousDebugPrint;
+    }
     expect(
-      find.text('Could not log out. Please try again. Exception: Sign-out failed.'),
+      messages,
+      contains(startsWith('Sign-out failed: Exception: Sign-out failed.')),
+    );
+    expect(
+      find.text(
+        'Could not log out. Please try again. Exception: Sign-out failed.',
+      ),
       findsOneWidget,
     );
     expect(find.byType(SettingsPage), findsOneWidget);
@@ -154,7 +173,9 @@ void main() {
     await tester.tap(find.text('Log out'));
     await tester.pump();
     expect(
-      find.text('Could not log out. Please try again. Exception: Sign-out failed.'),
+      find.text(
+        'Could not log out. Please try again. Exception: Sign-out failed.',
+      ),
       findsNothing,
     );
     service.signOutCompleter!.complete();
@@ -173,7 +194,6 @@ void main() {
     expect(find.text('Log out'), findsOneWidget);
     expect(find.text('User'), findsOneWidget);
     expect(find.text('user@example.com'), findsOneWidget);
-    expect(find.text('Google'), findsOneWidget);
-    debugDefaultTargetPlatformOverride = null;
+    expect(find.text('google'), findsOneWidget);
   });
 }

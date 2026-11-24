@@ -1,14 +1,15 @@
 part of 'views.dart';
 
 class CozumelFoxesPage extends FmvvmStatefulWidget<CozumelFoxesViewModel> {
-  CozumelFoxesPage(super.viewModel, {super.key});
+  const CozumelFoxesPage(super.viewModel, {super.key});
 
   @override
-  State<CozumelFoxesPage> createState() => _CozumelFoxesPageState(bindableBase);
+  State<CozumelFoxesPage> createState() => _CozumelFoxesPageState();
 }
 
-class _CozumelFoxesPageState extends FmvvmState<CozumelFoxesPage, CozumelFoxesViewModel> {
-  _CozumelFoxesPageState(CozumelFoxesViewModel viewModel) : super(viewModel, true);
+class _CozumelFoxesPageState
+    extends FmvvmState<CozumelFoxesPage, CozumelFoxesViewModel> {
+  _CozumelFoxesPageState() : super(true);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,6 @@ class _CozumelFoxesPageState extends FmvvmState<CozumelFoxesPage, CozumelFoxesVi
     );
   }
 }
-
 
 class CozumelFoxesViewModel extends ViewModel {
   CozumelFoxesViewModel(this.navigationService);

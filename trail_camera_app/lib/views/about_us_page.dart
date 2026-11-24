@@ -1,14 +1,14 @@
 part of 'views.dart';
 
 class AboutUsPage extends FmvvmStatefulWidget<AboutUsViewModel> {
-  AboutUsPage(super.viewModel, {super.key});
+  const AboutUsPage(super.viewModel, {super.key});
 
   @override
-  State<AboutUsPage> createState() => _AboutUsPageState(bindableBase);
+  State<AboutUsPage> createState() => _AboutUsPageState();
 }
 
 class _AboutUsPageState extends FmvvmState<AboutUsPage, AboutUsViewModel> {
-  _AboutUsPageState(AboutUsViewModel viewModel) : super(viewModel, true);
+  _AboutUsPageState() : super(true);
 
   @override
   Widget build(BuildContext context) {
@@ -25,11 +25,10 @@ class _AboutUsPageState extends FmvvmState<AboutUsPage, AboutUsViewModel> {
   }
 }
 
-
 class AboutUsViewModel extends ViewModel {
   AboutUsViewModel(this.navigationService);
 
   final NavigationService navigationService;
-  
+
   AppDestination get destination => AppDestination.aboutUs;
 }

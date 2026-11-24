@@ -1,9 +1,14 @@
 part of 'models.dart';
 
-enum Provider {Google}
+enum Provider { google }
 
 class User extends BindableBase {
-  User({required this.id, required this.email, required this.name, required this.provider});
+  User({
+    required this.id,
+    required this.email,
+    required this.name,
+    required this.provider,
+  });
 
   final String id;
   final String email;

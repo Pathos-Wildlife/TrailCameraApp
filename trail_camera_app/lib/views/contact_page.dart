@@ -1,14 +1,14 @@
 part of 'views.dart';
 
 class ContactPage extends FmvvmStatefulWidget<ContactViewModel> {
-  ContactPage(super.viewModel, {super.key});
+  const ContactPage(super.viewModel, {super.key});
 
   @override
-  State<ContactPage> createState() => _ContactPageState(bindableBase);
+  State<ContactPage> createState() => _ContactPageState();
 }
 
 class _ContactPageState extends FmvvmState<ContactPage, ContactViewModel> {
-  _ContactPageState(ContactViewModel viewModel) : super(viewModel, true);
+  _ContactPageState() : super(true);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,6 @@ class _ContactPageState extends FmvvmState<ContactPage, ContactViewModel> {
     );
   }
 }
-
 
 class ContactViewModel extends ViewModel {
   ContactViewModel(this.navigationService);

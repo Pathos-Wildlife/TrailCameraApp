@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fmvvm/fmvvm.dart';
 import 'package:trail_camera_app/interfaces/interfaces.dart';
@@ -36,7 +36,7 @@ class _SignInService extends ISignInService {
     id: 'id',
     name: 'User',
     email: 'user@example.com',
-    provider: Provider.Google,
+    provider: Provider.google,
   );
 
   @override

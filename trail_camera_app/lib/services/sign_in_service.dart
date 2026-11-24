@@ -35,7 +35,7 @@ class SignInService extends BindableBase implements ISignInService {
   @override
   Future<User> signIn(Provider provider) async {
     switch (provider) {
-      case Provider.Google:
+      case Provider.google:
         var returnValue = await _googleSignInService.signIn();
         final preferences = await SharedPreferences.getInstance();
         await _setSignedIn(preferences, true);
@@ -51,7 +51,7 @@ class SignInService extends BindableBase implements ISignInService {
       throw StateError('Cannot sign out: no user is signed in.');
     }
     switch (user.provider) {
-      case Provider.Google:
+      case Provider.google:
         final preferences = await SharedPreferences.getInstance();
         await _setSignedIn(preferences, false);
         try {
