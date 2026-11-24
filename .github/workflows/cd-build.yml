@@ -1,0 +1,244 @@
+name: CD Build - QA
+
+on:
+  push:
+    branches:
+      - QA
+  workflow_dispatch:
+    inputs:
+      buildOS:
+        description: 'OS to build'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - iOS
+          - android
+          - both
+      uploadArtifacts:
+        description: 'Upload build artifacts'
+        required: true
+        default: true
+        type: boolean
+      appVersion:
+        description: 'Major.Minor.build version number'
+        required: true
+        default: 'use default'
+        type: string
+      appBuildNumber:
+        description: 'build number, must be an integer higher than the last upload'
+        required: true
+        default: 'use default'
+        type: string
+      addGitTag:
+        description: 'Add version tag to Git'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  build:
+    name: 🚀 Build and Deploy Flutter Project
+    runs-on: macos-26
+    env:
+      AppleAppId: org.pathoswildlife.trailcameraapp
+      iOSCertificateName: "Apple Distribution: Pathos Wildlife (XAK47JYH47)"
+      iOSProvisioningProfileName: "Trail Camera App Store"
+    steps:
+      - id: setAppVersion
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "workflow_dispatch" ]] || [[ -z "${{ github.event.inputs.appVersion }}" ]] || [[ "${{ github.event.inputs.appVersion }}" == "use default" ]]; then
+            echo "value=${{ vars.APP_VERSION }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ github.event.inputs.appVersion }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: setAppBuildNumber
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "workflow_dispatch" ]] || [[ -z "${{ github.event.inputs.appBuildNumber }}" ]] || [[ "${{ github.event.inputs.appBuildNumber }}" == "use default" ]]; then
+            echo "value=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ github.event.inputs.appBuildNumber }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Add Apple Certificate to Keychain
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          contains(fromJSON('["iOS","both"]'), github.event.inputs.buildOS)
+
+      - name: 'Download Provisioning Profiles'
+        uses: apple-actions/download-provisioning-profiles@v4
+        with:
+          bundle-id: '${{ env.AppleAppId }}'
+          profile-type: 'IOS_APP_STORE'
+          issuer-id: ${{ secrets.APPLE_CD_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPLE_CD_KEY_ID }}
+          api-private-key: ${{ secrets.APPLE_CD_API_PRIVATE_KEY }}
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          contains(fromJSON('["iOS","both"]'), github.event.inputs.buildOS)
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter --version
+
+      - name: 📦 Install Dependencies
+        run: flutter pub get
+
+      - name: 🔨 Ensure iOS is installed
+        run: xcodebuild -downloadPlatform iOS
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          contains(fromJSON('["iOS","both"]'), github.event.inputs.buildOS)
+
+      - name: Configure Google sign-in
+        env:
+          GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          names = ("GOOGLE_IOS_CLIENT_ID", "GOOGLE_SERVER_CLIENT_ID")
+          missing = [name for name in names if not os.environ.get(name)]
+          if missing:
+              raise SystemExit("Missing required Google sign-in secrets: " + ", ".join(missing))
+          os.umask(0o077)
+          Path("google-sign-in.json").write_text(
+              json.dumps({name: os.environ[name] for name in names}), encoding="utf-8"
+          )
+          PY
+          python3 tool/configure_google_sign_in.py
+          
+      - name: Build iOS project 🔨
+        run: >
+          flutter build ipa 
+          --release 
+          --build-name="${{ steps.setAppVersion.outputs.value }}"
+          --build-number=${{ steps.setAppBuildNumber.outputs.value }}
+          --export-options-plist="ios/exportOptions.plist"
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          contains(fromJSON('["iOS","both"]'), github.event.inputs.buildOS)
+
+      - name: Upload iOS IPA artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: iOS-ipa
+          path: build/ios/ipa/
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          contains(fromJSON('["iOS","both"]'), github.event.inputs.buildOS)
+
+      - name: Configure Android signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import base64
+          import binascii
+          import os
+          from pathlib import Path
+
+          names = (
+              "ANDROID_KEYSTORE_BASE64",
+              "ANDROID_KEYSTORE_PASSWORD",
+              "ANDROID_KEY_ALIAS",
+              "ANDROID_KEY_PASSWORD",
+          )
+          missing = [name for name in names if not os.environ.get(name)]
+          if missing:
+              raise SystemExit("Missing required Android signing secrets: " + ", ".join(missing))
+
+          try:
+              keystore = base64.b64decode(os.environ["ANDROID_KEYSTORE_BASE64"], validate=True)
+          except (ValueError, binascii.Error):
+              raise SystemExit("ANDROID_KEYSTORE_BASE64 is not valid base64")
+          if not keystore:
+              raise SystemExit("ANDROID_KEYSTORE_BASE64 decodes to an empty keystore")
+
+          def property_value(value):
+              units = value.encode("utf-16-be")
+              return "".join(
+                  chr(unit) if 33 <= unit <= 126 and chr(unit) not in "\\:=#!"
+                  else f"\\u{unit:04x}"
+                  for unit in (int.from_bytes(units[i:i + 2], "big") for i in range(0, len(units), 2))
+              )
+
+          os.umask(0o077)
+          Path("android/PathosKeystore.jks").write_bytes(keystore)
+          Path("android/key.properties").write_text(
+              "storePassword=" + property_value(os.environ["ANDROID_KEYSTORE_PASSWORD"]) + "\n"
+              + "keyAlias=" + property_value(os.environ["ANDROID_KEY_ALIAS"]) + "\n"
+              + "keyPassword=" + property_value(os.environ["ANDROID_KEY_PASSWORD"]) + "\n",
+              encoding="ascii",
+          )
+          PY
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          contains(fromJSON('["android","both"]'), github.event.inputs.buildOS)
+
+      - name: Build Android project 🔨
+        run: flutter build apk
+          --release
+          --build-name="${{ steps.setAppVersion.outputs.value }}"
+          --build-number=${{ steps.setAppBuildNumber.outputs.value }}
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          contains(fromJSON('["android","both"]'), github.event.inputs.buildOS)
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: Android-apk
+          path: build/app/outputs/apk/release/
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          contains(fromJSON('["android","both"]'), github.event.inputs.buildOS)
+      
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.addGitTag == 'true'
+
+      - name: Create and push tag
+        run: |
+          git tag "${{ steps.setAppVersion.outputs.value }}+${{ steps.setAppBuildNumber.outputs.value }}"
+          git push origin "refs/tags/${{ steps.setAppVersion.outputs.value }}+${{ steps.setAppBuildNumber.outputs.value }}"
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.addGitTag == 'true'
+
+      - name: 'Upload app to TestFlight'
+        uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: 'build/ios/ipa/lawyer_app.ipa'
+          issuer-id: ${{ secrets.APPLE_CD_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPLE_CD_KEY_ID }}
+          api-private-key: ${{ secrets.APPLE_CD_API_PRIVATE_KEY }}
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          (contains(fromJSON('["iOS","both"]'), github.event.inputs.buildOS) && 
+          github.event.inputs.uploadArtifacts == 'true')
