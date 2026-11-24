@@ -1,0 +1,142 @@
+# trail_camera_app
+
+A new Flutter project.
+
+## Google sign-in
+
+The Google button uses the `google_sign_in` plugin to authenticate and display
+the selected account on iOS and Android. At startup the app attempts to restore
+the Google-managed sign-in only if the previous session signed in and did not
+log out; otherwise it shows the login page. Existing installations without this
+saved state must sign in once. Successful
+sign-in opens the Camera Map. Google may show an account chooser when restoring
+credentials. This is a prototype and does not create an app account or
+authenticate to a backend; a backend must validate Google ID tokens itself.
+The Settings page displays the signed-in user's name, email and provider. Its
+Log out button signs out through Google and returns to the login page.
+
+### iOS setup
+
+To try the flow on the iOS simulator:
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), create or select
+   a project. Set up Google Auth Platform branding, audience and contact details.
+   If the app is external and in testing, add your Google account under **Test
+   users**.
+2. Under **Google Auth Platform > Clients**, create an OAuth client of type
+   **iOS**. Use bundle ID `org.pathoswildlife.trailcameraapp`, or change it in
+   Xcode and use the exact same value in Google Cloud. Copy the client ID and
+   the **iOS URL scheme** shown for that client. This can be configured directly
+   in Google Cloud; Firebase is not required.
+3. Configure the local client IDs as described below, then open
+   `trail_camera_app` in Rider, start an iOS simulator, and run:
+
+   ```sh
+   flutter pub get
+   flutter run -d <simulator-id> --dart-define-from-file=google-sign-in.json
+   ```
+
+   Find the simulator ID with `flutter devices`. Alternatively, add
+   `--dart-define-from-file=google-sign-in.json` to the Flutter run
+   configuration's additional run arguments in Rider. Restart the app after
+   changing a compile-time define.
+
+The SDK handles the Google authentication flow and callback. If you add backend
+authentication, configure a web/server client ID and send a Google ID token to
+the backend for validation; never trust the displayed account ID or email alone.
+
+### Android setup
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), create or select
+   the same project used for iOS. Under **Google Auth Platform > Clients**, add
+   an **Android** OAuth client using the application ID
+   `org.pathoswildlife.trail_camera_app` and the SHA-1 signing certificate
+   fingerprint for the certificate used to sign the installed app. Retrieve
+   Gradle signing fingerprints from `trail_camera_app` with
+   `cd android && ./gradlew signingReport`.
+2. Create or select a **Web application** OAuth client in that project. Use
+   that client's ID—not the Android client ID—as `GOOGLE_SERVER_CLIENT_ID`.
+3. Configure the local client IDs as described below, then run:
+
+   ```sh
+   flutter run -d <android-device-id> --dart-define-from-file=google-sign-in.json
+   ```
+
+   Find the device ID with `flutter devices`. Add the same define to your run
+   configuration in Rider if needed. Do not add a client secret to the app.
+
+### Client ID configuration
+
+Create `trail_camera_app/google-sign-in.json` locally with the iOS client ID and
+the Web application client ID:
+
+```json
+{
+  "GOOGLE_IOS_CLIENT_ID": "<your-ios-client-id>",
+  "GOOGLE_SERVER_CLIENT_ID": "<your-web-client-id>"
+}
+```
+
+From `trail_camera_app`, run `python3 tool/configure_google_sign_in.py`. This
+validates both IDs and generates the iOS URL scheme in
+`ios/Flutter/GoogleSignIn.xcconfig`. Run it again whenever the iOS ID changes.
+Both files are ignored by Git. Pass the JSON file via `--dart-define-from-file`
+for local runs and builds; without the appropriate ID, sign-in reports a
+configuration error.
+
+For CI, add repository secrets named `GOOGLE_IOS_CLIENT_ID` and
+`GOOGLE_SERVER_CLIENT_ID`. The workflow generates the same configuration for
+both builds. OAuth client IDs are embedded in the resulting app and are not
+confidential; never put a client secret in the app. IDs previously committed
+remain in Git history.
+
+Debug, profile, and release builds use `android/PathosKeystore.jks` and the
+credentials in the ignored `android/key.properties` file. On another machine,
+securely obtain the keystore and create that file with `storePassword`,
+`keyPassword`, and `keyAlias` properties; escape backslashes as `\\` in
+property values. Never commit either file. If distributing through Google Play
+App Signing, also register the Play app-signing certificate's SHA-1 in Google
+Cloud.
+
+For the GitHub Actions CI build, add these repository secrets under **Settings >
+Secrets and variables > Actions**:
+
+- `ANDROID_KEYSTORE_BASE64`: the base64-encoded contents of `PathosKeystore.jks`
+  (generate with `base64 < android/PathosKeystore.jks | tr -d '\n'`).
+- `ANDROID_KEYSTORE_PASSWORD`: the keystore password (`storePassword`).
+- `ANDROID_KEY_ALIAS`: the key alias (`keyAlias`).
+- `ANDROID_KEY_PASSWORD`: the key password (`keyPassword`).
+
+The workflow creates the signing files for the Android build and removes them
+afterward. GitHub does not provide repository secrets to workflows triggered by
+pull requests from forks, so those pull requests fail when configuring secrets.
+
+See the [`google_sign_in` Android setup guide](https://pub.dev/packages/google_sign_in_android)
+for details. Web sign-in is not enabled by this app.
+
+## Camera map
+
+The landing page displays OpenStreetMap tiles around Cozumel. The map center is
+restricted to the island area and the zoom range is limited; surrounding sea
+and coastline can still be visible. Cameras are shown as pins at their stored
+coordinates; select a pin to see its name. A network connection is required to fetch
+uncached tiles. The public OpenStreetMap tile service is best-effort and subject
+to its [usage policy](https://operations.osmfoundation.org/policies/tiles/);
+use an appropriate tile provider for production traffic. Camera List shows each
+camera's name and coordinates; select a card to open the map with that camera
+selected. The other content destinations have placeholder pages; their content
+is not implemented yet.
+
+## Getting Started
+
+This project is a starting point for a Flutter application.
+
+A few resources to get you started if this is your first Flutter project:
+
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
