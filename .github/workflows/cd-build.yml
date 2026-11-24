@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - QA
-  pull_request:
-    branches:
-      - main
+      - CDWork
   workflow_dispatch:
     inputs:
       buildOS:
@@ -43,14 +41,20 @@ jobs:
   build:
     name: 🚀 Build and Deploy Flutter Project
     runs-on: macos-26
-    defaults:
-      run:
-        working-directory: trail_camera_app
     env:
       AppleAppId: org.pathoswildlife.trailcameraapp
       iOSCertificateName: "Apple Distribution: Pathos Wildlife (XAK47JYH47)"
       iOSProvisioningProfileName: "Trail Camera App Store"
+    defaults:
+      run:
+        working-directory: trail_camera_app
+    
     steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          
       - id: setAppVersion
         shell: bash
         run: |
@@ -68,11 +72,6 @@ jobs:
           else
             echo "value=${{ github.event.inputs.appBuildNumber }}" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: ⬇️ Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Add Apple Certificate to Keychain
         uses: apple-actions/import-codesign-certs@v3
@@ -100,7 +99,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -137,7 +136,7 @@ jobs:
           )
           PY
           python3 tool/configure_google_sign_in.py
-          
+
       - name: Build iOS project 🔨
         run: >
           flutter build ipa 
@@ -226,7 +225,7 @@ jobs:
         if: |
           github.event_name != 'workflow_dispatch' ||
           contains(fromJSON('["android","both"]'), github.event.inputs.buildOS)
-      
+
       - name: Set up Git
         run: |
           git config user.name "github-actions[bot]"
